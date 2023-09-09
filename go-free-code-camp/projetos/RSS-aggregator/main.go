@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"gitlab.com/victorreisprog/go/-/tree/master/go-free-code-camp/projetos/RSS-aggregator/internal/database"
 
@@ -20,7 +21,6 @@ type apiConfig struct {
 }
 
 func main() {
-
 	godotenv.Load(".env")
 
 	portStr := os.Getenv("PORT")
@@ -37,10 +37,12 @@ func main() {
 		log.Fatal("Banco não conectou corretamente: %v", err)
 	}
 
-	convQueries := database.New(dbConn)
+	db := database.New(dbConn)
 	apiCfg := apiConfig{ // estpa apontando para nossa struct apiConfig
-		DB: convQueries,
+		DB: db,
 	}
+
+	go startScrapping(db, 10, time.Minute)
 
 	router := chi.NewRouter()
 
